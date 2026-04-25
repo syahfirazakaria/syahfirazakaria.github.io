@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My LP Profile | AWS Women in Tech</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a0533 0%, #3b0764 30%, #6b21a8 60%, #a855f7 100%);
+      min-height: 100vh;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 60px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Floating sparkles background */
+    .sparkles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .sparkle {
+      position: absolute;
+      border-radius: 50%;
+      animation: floatUp linear infinite;
+      opacity: 0;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    header, .quiz-card, .result-card, footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    header .badge {
+      background: linear-gradient(90deg, #f0abfc, #c084fc);
+      color: #3b0764;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 5px 16px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: inline-block;
+      box-shadow: 0 2px 12px rgba(192,132,252,0.4);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      line-height: 1.2;
+      text-shadow: 0 2px 20px rgba(168,85,247,0.5);
+    }
+
+    header h1 span {
+      background: linear-gradient(90deg, #f0abfc, #e879f9, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      margin-top: 10px;
+      color: #e9d5ff;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .quiz-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(240,171,252,0.25);
+      border-radius: 28px;
+      padding: 38px;
+      max-width: 640px;
+      width: 100%;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 40px rgba(107,33,168,0.4), 0 0 0 1px rgba(240,171,252,0.1);
+    }
+
+    /* Progress */
+    .progress-bar-wrap {
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+      height: 8px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #e879f9, #a855f7, #c084fc);
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+      box-shadow: 0 0 10px rgba(232,121,249,0.6);
+    }
+
+    .question-label {
+      font-size: 12px;
+      color: #f0abfc;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .question-text {
+      font-size: 1.25rem;
+      font-weight: 800;
+      line-height: 1.5;
+      margin-bottom: 24px;
+      color: #fdf4ff;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-btn {
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(240,171,252,0.2);
+      border-radius: 16px;
+      padding: 15px 20px;
+      color: #f3e8ff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.22s cubic-bezier(.4,0,.2,1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .option-btn::before {
+      content: '✦';
+      font-size: 0.7rem;
+      color: #c084fc;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .option-btn:hover {
+      background: rgba(192,132,252,0.2);
+      border-color: #c084fc;
+      transform: translateX(4px);
+      box-shadow: 0 4px 20px rgba(168,85,247,0.3);
+    }
+
+    .option-btn:hover::before { opacity: 1; }
+
+    .option-btn.selected {
+      background: linear-gradient(135deg, rgba(232,121,249,0.25), rgba(168,85,247,0.25));
+      border-color: #e879f9;
+      box-shadow: 0 4px 20px rgba(232,121,249,0.3);
+    }
+
+    /* Feedback toast */
+    .feedback-toast {
+      display: none;
+      background: linear-gradient(135deg, rgba(232,121,249,0.2), rgba(168,85,247,0.2));
+      border: 1.5px solid rgba(240,171,252,0.4);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-top: 16px;
+      font-size: 0.92rem;
+      color: #f3e8ff;
+      line-height: 1.6;
+      animation: fadeSlideIn 0.3s ease;
+    }
+
+    .feedback-toast.show { display: block; }
+
+    .feedback-toast .feedback-title {
+      font-weight: 800;
+      color: #f0abfc;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .feedback-toast .tip-label {
+      font-weight: 800;
+      color: #e879f9;
+      margin-top: 10px;
+      margin-bottom: 2px;
+      font-size: 0.82rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .next-btn {
+      background: linear-gradient(135deg, #e879f9, #a855f7);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 16px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(168,85,247,0.4);
+      display: none;
+    }
+
+    .next-btn.show { display: block; }
+    .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(168,85,247,0.5); }
+
+    /* Result Card */
+    .result-card {
+      display: none;
+      text-align: center;
+    }
+
+    .result-card.show { display: block; }
+    .quiz-card.hide { display: none; }
+
+    .confetti-row {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      animation: bounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .lp-icon {
+      font-size: 5rem;
+      margin-bottom: 12px;
+      display: block;
+      animation: popIn 0.5s cubic-bezier(.4,0,.2,1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .lp-title {
+      font-size: 1.9rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #f0abfc, #e879f9, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .lp-tagline {
+      font-size: 1rem;
+      color: #e9d5ff;
+      margin-bottom: 20px;
+      font-style: italic;
+      font-weight: 600;
+    }
+
+    .lp-description {
+      font-size: 0.97rem;
+      line-height: 1.75;
+      color: #f3e8ff;
+      margin-bottom: 24px;
+      text-align: left;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 18px 20px;
+      border: 1px solid rgba(240,171,252,0.15);
+    }
+
+    .lp-traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .trait-tag {
+      background: linear-gradient(135deg, rgba(232,121,249,0.2), rgba(168,85,247,0.2));
+      border: 1.5px solid rgba(240,171,252,0.4);
+      color: #f0abfc;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    /* Tips section on result */
+    .tips-section {
+      background: linear-gradient(135deg, rgba(232,121,249,0.1), rgba(168,85,247,0.1));
+      border: 1.5px solid rgba(240,171,252,0.25);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 22px;
+      text-align: left;
+    }
+
+    .tips-section .tips-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #f0abfc;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .tips-section ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tips-section ul li {
+      font-size: 0.92rem;
+      color: #f3e8ff;
+      font-weight: 600;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      line-height: 1.5;
+    }
+
+    .tips-section ul li::before {
+      content: '💜';
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      margin-top: 1px;
+    }
+
+    .share-section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(240,171,252,0.15);
+    }
+
+    .share-section p {
+      font-size: 0.88rem;
+      color: #e9d5ff;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .share-text {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(240,171,252,0.15);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.85rem;
+      color: #f3e8ff;
+      line-height: 1.6;
+      text-align: left;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+    }
+
+    .copy-btn {
+      background: linear-gradient(135deg, #e879f9, #a855f7);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 11px 28px;
+      font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      font-size: 0.92rem;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(168,85,247,0.4);
+    }
+
+    .copy-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(168,85,247,0.5); }
+
+    .restart-btn {
+      background: transparent;
+      border: 1.5px solid rgba(240,171,252,0.35);
+      color: #e9d5ff;
+      border-radius: 12px;
+      padding: 11px 28px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+
+    .restart-btn:hover {
+      border-color: #e879f9;
+      color: #f0abfc;
+      background: rgba(232,121,249,0.08);
+    }
+
+    /* Name step */
+    .name-step {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .name-intro {
+      font-size: 0.95rem;
+      color: #e9d5ff;
+      font-weight: 600;
+      line-height: 1.6;
+      background: rgba(255,255,255,0.05);
+      border-radius: 14px;
+      padding: 14px 18px;
+      border: 1px solid rgba(240,171,252,0.15);
+    }
+
+    .name-input {
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(240,171,252,0.25);
+      border-radius: 14px;
+      padding: 15px 20px;
+      color: #fff;
+      font-size: 1rem;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .name-input::placeholder { color: #c084fc; opacity: 0.7; }
+    .name-input:focus {
+      border-color: #e879f9;
+      box-shadow: 0 0 0 3px rgba(232,121,249,0.2);
+    }
+
+    .start-btn {
+      background: linear-gradient(135deg, #e879f9, #a855f7);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(168,85,247,0.4);
+    }
+
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(168,85,247,0.5); }
+
+    footer {
+      margin-top: 40px;
+      color: #c084fc;
+      font-size: 0.82rem;
+      text-align: center;
+      font-weight: 600;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Floating sparkles -->
+<div class="sparkles" id="sparklesContainer"></div>
+
+<header>
+  <div class="badge">✦ AWS Women in Tech</div>
+  <h1>Discover Your <span>Leadership</span><br/>Principle Profile ✨</h1>
+  <p>5 fun questions · Find your inner Amazonian 💜</p>
+</header>
+
+<!-- Quiz -->
+<div class="quiz-card" id="quizCard">
+
+  <!-- Name Step -->
+  <div id="nameStep">
+    <div class="question-label">✨ Let's get started</div>
+    <div class="question-text">Hey superstar! What's your name? 🌟</div>
+    <div class="name-step">
+      <div class="name-intro">
+        You're about to discover which of Amazon's 16 Leadership Principles matches your personality. It only takes 2 minutes — and the result might surprise you! 💜
+      </div>
+      <input class="name-input" id="nameInput" type="text" placeholder="Type your first name..." maxlength="30"/>
+      <button class="start-btn" onclick="startQuiz()">Let's Go! ✨</button>
+    </div>
+  </div>
+
+  <!-- Questions -->
+  <div id="questionStep" style="display:none;">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="question-label" id="questionLabel">Question 1 of 5</div>
+    <div class="question-text" id="questionText"></div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="feedback-toast" id="feedbackToast"></div>
+    <button class="next-btn" id="nextBtn" onclick="goNext()">Next Question →</button>
+  </div>
+
+</div>
+
+<!-- Result -->
+<div class="quiz-card result-card" id="resultCard">
+  <div class="confetti-row">🎉🌸💜🎊✨</div>
+  <span class="lp-icon" id="resultIcon"></span>
+  <div class="question-label">Your LP Profile, <span id="resultName"></span>!</div>
+  <div class="lp-title" id="resultTitle"></div>
+  <div class="lp-tagline" id="resultTagline"></div>
+  <div class="lp-description" id="resultDesc"></div>
+  <div class="lp-traits" id="resultTraits"></div>
+
+  <div class="tips-section">
+    <div class="tips-title">💡 Tips to lean into your LP</div>
+    <ul id="resultTips"></ul>
+  </div>
+
+  <div class="share-section">
+    <p>Share your profile at the event 👇</p>
+    <div class="share-text" id="shareText"></div>
+    <button class="copy-btn" onclick="copyShare()">📋 Copy to Share</button>
+  </div>
+
+  <button class="restart-btn" onclick="restart()">↩ Retake the Quiz</button>
+</div>
+
+<footer>Built at AWS Women in Tech · Powered by the 16 Leadership Principles 💜</footer>
+
+<script>
+  // Sparkles background
+  (function() {
+    const container = document.getElementById("sparklesContainer");
+    const colors = ["#f0abfc","#c084fc","#e879f9","#a855f7","#d8b4fe","#fdf4ff"];
+    for (let i = 0; i < 28; i++) {
+      const s = document.createElement("div");
+      s.className = "sparkle";
+      const size = Math.random() * 8 + 3;
+      s.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        animation-duration:${Math.random()*12+8}s;
+        animation-delay:${Math.random()*10}s;
+      `;
+      container.appendChild(s);
+    }
+  })();
+
+  const questions = [
+    {
+      text: "When you join a new project, what's your first instinct?",
+      options: [
+        { text: "Understand the customer's pain points deeply", lp: "CustomerObsession", feedback: "Love that! Starting with empathy is the secret weapon of the best builders. You naturally put people first. 💜", tip: "Try doing a quick 'customer interview' — even 5 minutes with a real user can change everything." },
+        { text: "Look for ways to simplify and cut unnecessary steps", lp: "Frugality", feedback: "Yes! Constraints are your creative fuel. You see elegance where others see limitations. ✨", tip: "Next time you're scoping a project, ask: 'What's the minimum we need to deliver real value?'" },
+        { text: "Dive into the data and form a strong opinion", lp: "AreRightALot", feedback: "Sharp! You trust evidence AND instinct — that combo is rare and powerful. 🎯", tip: "Practice 'steel-manning' — argue the opposite view before committing to yours. It sharpens your judgment." },
+        { text: "Think about the long-term impact, not just quick wins", lp: "ThinkBig", feedback: "Big thinker alert! 🚀 You naturally zoom out when everyone else is zoomed in. That's a superpower.", tip: "Write a 1-page 'press release from the future' — what does success look like in 3 years?" },
+      ]
+    },
+    {
+      text: "A teammate disagrees with your idea in a meeting. You...",
+      options: [
+        { text: "Listen carefully — they might know something you don't", lp: "LearnAndBeCurious", feedback: "That's wisdom right there! Curiosity over ego — you grow faster than anyone in the room. 🌱", tip: "Try asking 'What would have to be true for your view to be right?' — it opens incredible conversations." },
+        { text: "Back your position with data and logic", lp: "AreRightALot", feedback: "Confident and grounded! You don't fold under pressure — you bring receipts. 💪", tip: "Balance data with storytelling — numbers convince minds, but stories move hearts." },
+        { text: "Commit to the team's decision once it's made", lp: "CommitAndDeliver", feedback: "Team player AND executor — that's gold. You know that alignment beats being right. ✅", tip: "Voice your concerns clearly before committing — then go all in. That's the full LP in action." },
+        { text: "Speak up honestly — even if it's uncomfortable", lp: "HaveBackbone", feedback: "Brave! Speaking truth takes courage, and teams need people like you to stay honest. 🦁", tip: "Frame disagreements as 'I'm concerned about X because...' — it keeps the conversation collaborative." },
+      ]
+    },
+    {
+      text: "What energizes you most at work?",
+      options: [
+        { text: "Mentoring others and helping them grow", lp: "HireAndDevelop", feedback: "You're a multiplier! The impact you have through others is bigger than anything you could do alone. 🌸", tip: "Schedule a monthly 1:1 with someone you want to invest in — even 20 mins makes a huge difference." },
+        { text: "Solving a hard problem nobody else could crack", lp: "Invent", feedback: "Problem-solver mode: activated! 💡 You thrive where others get stuck. That's rare and valuable.", tip: "Keep an 'idea journal' — your best innovations often come from connecting dots across different problems." },
+        { text: "Delivering results that actually move the needle", lp: "DeliverResults", feedback: "Outcome-obsessed in the best way! You cut through noise and make things happen. 🏆", tip: "Define your 'north star metric' for every project — one number that tells you if you're winning." },
+        { text: "Building trust with my team and stakeholders", lp: "EarnTrust", feedback: "Trust is the foundation of everything — and you know it. People feel safe around you. 🤝", tip: "Be radically transparent about what you don't know. Vulnerability builds more trust than perfection." },
+      ]
+    },
+    {
+      text: "How do you approach a big, ambiguous challenge?",
+      options: [
+        { text: "Break it down, start small, iterate fast", lp: "BiasForAction", feedback: "Done is better than perfect — and you live that! ⚡ Your momentum is contagious.", tip: "Use the '2-pizza rule' for decisions: if it takes more than 2 pizzas to feed the decision-makers, it's too big." },
+        { text: "Research deeply before making any move", lp: "LearnAndBeCurious", feedback: "Thoughtful and thorough! You know that the best decisions are informed ones. 🔍", tip: "Set a 'research deadline' — give yourself 48 hours to learn, then commit to a direction." },
+        { text: "Think about what the best outcome looks like in 5 years", lp: "ThinkBig", feedback: "Future-focused and fearless! 🚀 You build for what could be, not just what is.", tip: "Try the 'working backwards' method — write the ideal outcome first, then plan backwards to today." },
+        { text: "Find the simplest solution that actually works", lp: "Frugality", feedback: "Elegant solutions are the hardest to find — and you find them! 🔧 Simplicity is genius.", tip: "Ask 'What would we do if we had half the budget and half the time?' — the answer is usually the right one." },
+      ]
+    },
+    {
+      text: "What do you believe makes a great leader?",
+      options: [
+        { text: "Owning outcomes end-to-end, no excuses", lp: "Ownership", feedback: "Owner mindset! 🔑 You don't wait to be told — you see what needs doing and you do it.", tip: "Next time something goes wrong, ask 'What could I have done differently?' before looking outward." },
+        { text: "Setting the highest standards and never settling", lp: "InsistOnHighStandards", feedback: "Quality champion! ⭐ You raise the bar just by being in the room. That's a gift to your team.", tip: "Share your standards explicitly — people can't meet a bar they can't see. Write it down." },
+        { text: "Earning trust through transparency and consistency", lp: "EarnTrust", feedback: "Integrity is your superpower. 🤝 People follow leaders they trust — and they trust you.", tip: "Do what you say, every time. Consistency is the fastest way to build unshakeable trust." },
+        { text: "Developing the next generation of leaders", lp: "HireAndDevelop", feedback: "Legacy builder! 🌱 The best leaders create more leaders — and that's exactly your instinct.", tip: "Identify one person on your team right now who has untapped potential. Invest in them this week." },
+      ]
+    }
+  ];
+
+  const lps = {
+    CustomerObsession: {
+      icon: "�",
+      title: "Customer Obsession",
+      tagline: "\"Leaders start with the customer and work backwards.\"",
+      desc: "You are deeply empathetic and always put the people you serve at the center of every decision. You don't just solve problems — you anticipate needs before they're even voiced. Your superpower is turning customer insight into meaningful impact.",
+      traits: ["Empathetic", "User-focused", "Insightful", "Purpose-driven"],
+      tips: ["Interview at least one real user before building anything new", "Create a simple 'customer pain map' to visualize what frustrates your users", "Ask 'would a customer thank us for this?' before every major decision"]
+    },
+    Frugality: {
+      icon: "�",
+      title: "Frugality",
+      tagline: "\"Accomplish more with less.\"",
+      desc: "You have a gift for finding elegant, efficient solutions. You don't need a big budget or a large team to make things happen — constraints fuel your creativity. You're the person who builds something remarkable out of what others overlook.",
+      traits: ["Resourceful", "Creative", "Efficient", "Pragmatic"],
+      tips: ["Challenge every line item — ask 'what happens if we remove this?'", "Celebrate creative workarounds on your team, not just big-budget wins", "Use constraints as a design brief: 'build X with only Y'"]
+    },
+    AreRightALot: {
+      icon: "🎯",
+      title: "Are Right, A Lot",
+      tagline: "\"Strong judgment and good instincts.\"",
+      desc: "You combine sharp analytical thinking with strong intuition. You seek diverse perspectives, challenge your own assumptions, and make confident decisions even with incomplete information. People trust your judgment because you've earned it.",
+      traits: ["Analytical", "Decisive", "Open-minded", "Confident"],
+      tips: ["Keep a decision journal — track your calls and review them monthly", "Actively seek out people who disagree with you before deciding", "Practice 'pre-mortem' thinking: imagine the decision failed, then ask why"]
+    },
+    ThinkBig: {
+      icon: "🚀",
+      title: "Think Big",
+      tagline: "\"Thinking small is a self-fulfilling prophecy.\"",
+      desc: "You dream at a different scale. Where others see incremental improvements, you see transformational possibilities. You inspire people to aim higher and challenge the status quo. Your vision is your greatest asset.",
+      traits: ["Visionary", "Bold", "Inspiring", "Strategic"],
+      tips: ["Write a 'press release from the future' — what does your project look like at full scale?", "Ask 'what would 10x look like?' before settling for 10%", "Share your big vision with your team — inspiration is contagious"]
+    },
+    LearnAndBeCurious: {
+      icon: "✨",
+      title: "Learn and Be Curious",
+      tagline: "\"Never stop learning.\"",
+      desc: "You are endlessly curious and always growing. You treat every challenge as a learning opportunity and every person as a potential teacher. Your intellectual hunger keeps you ahead of the curve and makes you a joy to work with.",
+      traits: ["Curious", "Adaptable", "Growth-minded", "Open"],
+      tips: ["Block 30 mins a week for learning something completely outside your domain", "Ask 'what can I learn from this failure?' before moving on", "Find a mentor in a field you know nothing about — the cross-pollination is magic"]
+    },
+    CommitAndDeliver: {
+      icon: "💎",
+      title: "Commit and Deliver",
+      tagline: "\"Disagree and commit.\"",
+      desc: "Once a decision is made, you're all in. You don't let perfect be the enemy of good — you execute with focus and follow through. Teams rely on you because when you say you'll do something, it gets done.",
+      traits: ["Reliable", "Focused", "Accountable", "Resilient"],
+      tips: ["Voice concerns clearly before committing — then go 100% all in", "Break big commitments into weekly milestones so progress is visible", "Celebrate follow-through on your team, not just big launches"]
+    },
+    HaveBackbone: {
+      icon: "�",
+      title: "Have Backbone; Disagree and Commit",
+      tagline: "\"Respectfully challenge decisions when you disagree.\"",
+      desc: "You have the courage to speak truth to power. You don't go along just to get along — you voice your perspective clearly and respectfully, even when it's uncomfortable. That honesty makes teams stronger.",
+      traits: ["Courageous", "Honest", "Direct", "Principled"],
+      tips: ["Frame disagreements as 'I'm concerned about X because...' to keep it collaborative", "Prepare your counter-argument with data — courage + evidence is unstoppable", "After committing, be the loudest champion for the decision, even if it wasn't yours"]
+    },
+    HireAndDevelop: {
+      icon: "�",
+      title: "Hire and Develop the Best",
+      tagline: "\"Raise the performance bar with every hire.\"",
+      desc: "You are a builder of people. You see potential where others don't, and you invest in helping others reach it. Your legacy isn't just what you build — it's the people you lift up along the way.",
+      traits: ["Mentoring", "Generous", "Talent-spotter", "Coach"],
+      tips: ["Identify one person with untapped potential and invest in them this week", "Give specific, actionable feedback — not just 'great job!'", "Ask your team 'what do you want to learn next?' and help make it happen"]
+    },
+    Invent: {
+      icon: "💡",
+      title: "Invent and Simplify",
+      tagline: "\"Expect and require innovation.\"",
+      desc: "You are a natural innovator. You question why things are done a certain way and constantly look for better approaches. You're not afraid of being misunderstood — breakthroughs rarely look obvious at first.",
+      traits: ["Innovative", "Creative", "Curious", "Disruptive"],
+      tips: ["Keep an 'idea journal' — capture every wild idea, even the ones that seem impossible", "Ask 'why do we do it this way?' about one process every week", "Create a safe space for your team to experiment without fear of failure"]
+    },
+    DeliverResults: {
+      icon: "🏆",
+      title: "Deliver Results",
+      tagline: "\"Focus on the key inputs and deliver with the right quality.\"",
+      desc: "You are outcome-obsessed. You cut through noise, focus on what matters, and get things done. Setbacks don't stop you — they redirect you. You're the person teams want in their corner when it counts.",
+      traits: ["Results-driven", "Focused", "Tenacious", "Impactful"],
+      tips: ["Define your 'north star metric' for every project — one number that tells you if you're winning", "Do a weekly 'what moved the needle?' review to stay focused on impact", "Treat obstacles as puzzles, not blockers — there's always another path"]
+    },
+    EarnTrust: {
+      icon: "🤝",
+      title: "Earn Trust",
+      tagline: "\"Listen attentively, speak candidly, treat others respectfully.\"",
+      desc: "Trust is your currency. You build it slowly and protect it fiercely. You're transparent, consistent, and genuinely care about the people around you. Others open up to you because they know you'll handle it with integrity.",
+      traits: ["Trustworthy", "Transparent", "Consistent", "Caring"],
+      tips: ["Do what you say, every single time — consistency is the fastest trust-builder", "Be radically transparent about what you don't know — vulnerability builds more trust than perfection", "Acknowledge mistakes quickly and publicly — it shows strength, not weakness"]
+    },
+    Ownership: {
+      icon: "🔑",
+      title: "Ownership",
+      tagline: "\"Think long term and don't sacrifice long-term value for short-term results.\"",
+      desc: "You act like an owner, not a renter. You take responsibility for outcomes beyond your immediate role and never say 'that's not my job.' Your commitment to the bigger picture makes you invaluable to any team.",
+      traits: ["Accountable", "Proactive", "Long-term thinker", "Committed"],
+      tips: ["When something goes wrong, ask 'what could I have done differently?' before looking outward", "Proactively flag risks before they become problems — owners see around corners", "Think about the 2-year impact of every decision, not just the next sprint"]
+    },
+    InsistOnHighStandards: {
+      icon: "⭐",
+      title: "Insist on the Highest Standards",
+      tagline: "\"Continually raise the bar.\"",
+      desc: "Good enough is never good enough for you. You hold yourself and others to a high bar — not to be harsh, but because you believe in what's possible. Your attention to quality elevates everything you touch.",
+      traits: ["Detail-oriented", "Quality-driven", "Ambitious", "Precise"],
+      tips: ["Write down your standards explicitly — people can't meet a bar they can't see", "Do a 'quality audit' on one thing you shipped last month — what would you improve?", "Celebrate when someone on your team raises the bar, not just when they hit it"]
+    },
+    BiasForAction: {
+      icon: "⚡",
+      title: "Bias for Action",
+      tagline: "\"Speed matters in business.\"",
+      desc: "You move fast and learn faster. You'd rather make a reversible decision quickly than wait for perfect information. Your energy is contagious and your momentum keeps teams from getting stuck in analysis paralysis.",
+      traits: ["Action-oriented", "Decisive", "Energetic", "Agile"],
+      tips: ["Ask 'is this decision reversible?' — if yes, make it fast and learn from it", "Set a 48-hour rule: if a decision can be made in 48 hours, don't let it drag to a week", "Ship something small today — momentum builds on itself"]
+    },
+  };
+
+  let userName = "";
+  let scores = {};
+  let currentQ = 0;
+  let pendingLP = null;
+
+  function startQuiz() {
+    const input = document.getElementById("nameInput").value.trim();
+    if (!input) { document.getElementById("nameInput").focus(); return; }
+    userName = input;
+    document.getElementById("nameStep").style.display = "none";
+    document.getElementById("questionStep").style.display = "block";
+    showQuestion();
+  }
+
+  function showQuestion() {
+    const q = questions[currentQ];
+    document.getElementById("questionLabel").textContent = `Question ${currentQ + 1} of ${questions.length}`;
+    document.getElementById("questionText").textContent = q.text;
+    document.getElementById("progressBar").style.width = `${(currentQ / questions.length) * 100}%`;
+
+    const toast = document.getElementById("feedbackToast");
+    toast.classList.remove("show");
+    toast.innerHTML = "";
+
+    const nextBtn = document.getElementById("nextBtn");
+    nextBtn.classList.remove("show");
+    nextBtn.textContent = currentQ < questions.length - 1 ? "Next Question →" : "See My Profile ✨";
+    pendingLP = null;
+
+    const container = document.getElementById("optionsContainer");
+    container.innerHTML = "";
+    q.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.textContent = opt.text;
+      btn.onclick = () => selectAnswer(opt, btn);
+      container.appendChild(btn);
+    });
+  }
+
+  function selectAnswer(opt, clickedBtn) {
+    if (pendingLP) return; // already answered
+    pendingLP = opt.lp;
+    scores[opt.lp] = (scores[opt.lp] || 0) + 1;
+
+    // highlight selected
+    document.querySelectorAll(".option-btn").forEach(b => b.style.opacity = "0.45");
+    clickedBtn.style.opacity = "1";
+    clickedBtn.classList.add("selected");
+
+    // show feedback
+    const toast = document.getElementById("feedbackToast");
+    toast.innerHTML = `
+      <div class="feedback-title">✦ Great choice!</div>
+      <div>${opt.feedback}</div>
+      <div class="tip-label">💡 Quick tip</div>
+      <div>${opt.tip}</div>
+    `;
+    toast.classList.add("show");
+
+    document.getElementById("nextBtn").classList.add("show");
+  }
+
+  function goNext() {
+    currentQ++;
+    if (currentQ < questions.length) {
+      showQuestion();
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    const topLP = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+    const data = lps[topLP];
+
+    document.getElementById("quizCard").classList.add("hide");
+    const rc = document.getElementById("resultCard");
+    rc.classList.add("show");
+
+    document.getElementById("resultIcon").textContent = data.icon;
+    document.getElementById("resultName").textContent = userName;
+    document.getElementById("resultTitle").textContent = data.title;
+    document.getElementById("resultTagline").textContent = data.tagline;
+    document.getElementById("resultDesc").textContent = data.desc;
+
+    const traitsEl = document.getElementById("resultTraits");
+    traitsEl.innerHTML = "";
+    data.traits.forEach(t => {
+      const span = document.createElement("span");
+      span.className = "trait-tag";
+      span.textContent = t;
+      traitsEl.appendChild(span);
+    });
+
+    const tipsEl = document.getElementById("resultTips");
+    tipsEl.innerHTML = "";
+    data.tips.forEach(tip => {
+      const li = document.createElement("li");
+      li.textContent = tip;
+      tipsEl.appendChild(li);
+    });
+
+    const shareMsg = `✨ I just discovered my AWS Leadership Principle profile!\n\n${data.icon} ${userName}'s LP: ${data.title}\n\n${data.tagline}\n\n#AWSWomenInTech #LeadershipPrinciples #AWS`;
+    document.getElementById("shareText").textContent = shareMsg;
+
+    rc.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function copyShare() {
+    const text = document.getElementById("shareText").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector(".copy-btn");
+      btn.textContent = "✅ Copied!";
+      setTimeout(() => btn.textContent = "📋 Copy to Share", 2000);
+    });
+  }
+
+  function restart() {
+    scores = {};
+    currentQ = 0;
+    userName = "";
+    pendingLP = null;
+    document.getElementById("nameInput").value = "";
+    document.getElementById("resultCard").classList.remove("show");
+    document.getElementById("quizCard").classList.remove("hide");
+    document.getElementById("nameStep").style.display = "block";
+    document.getElementById("questionStep").style.display = "none";
+    document.getElementById("progressBar").style.width = "0%";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.getElementById("nameInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") startQuiz();
+  });
+</script>
+</body>
+</html>
